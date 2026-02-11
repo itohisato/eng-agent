@@ -1,3 +1,6 @@
+'use client';
+
+import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,8 +69,8 @@ export default function SubmissionList({ submissions }: SubmissionListProps) {
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-lg font-bold text-blue-600">{sub.scores.total}pt</div>
-                <Button size="sm" variant="outline">
-                  詳細
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/result?submissionId=${sub.submissionId}`}>詳細</Link>
                 </Button>
               </div>
             </div>

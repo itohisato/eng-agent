@@ -1,5 +1,16 @@
+'use client';
+
 import { Card } from '@/components/ui/card';
 import { BarChart3 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import type { Submission } from '@/types';
 
 interface ProgressChartProps {
@@ -12,7 +23,17 @@ export default function ProgressChart({ submissions }: ProgressChartProps) {
     (a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime()
   );
 
-  const maxScore = 100;
+  const chartData = sorted.map((sub) => {
+    const date = new Date(sub.submittedAt);
+    return {
+      date: `${date.getMonth() + 1}/${date.getDate()}`,
+      score: sub.scores.total,
+      grammar: sub.scores.grammar,
+      logic: sub.scores.logic,
+      context: sub.scores.context,
+      fluency: sub.scores.fluency,
+    };
+  });
 
   return (
     <Card className="p-6">
@@ -26,25 +47,39 @@ export default function ProgressChart({ submissions }: ProgressChartProps) {
       {sorted.length === 0 ? (
         <p className="text-sm text-slate-500">まだ提出がありません</p>
       ) : (
-        <div className="flex items-end gap-3">
-          {sorted.map((sub) => {
-            const height = (sub.scores.total / maxScore) * 100;
-            const date = new Date(sub.submittedAt);
-            const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
-
-            return (
-              <div key={sub.submissionId} className="flex flex-1 flex-col items-center gap-1">
-                <span className="text-xs font-medium text-slate-700">{sub.scores.total}</span>
-                <div className="relative w-full" style={{ height: '120px' }}>
-                  <div
-                    className="absolute bottom-0 w-full rounded-t-md bg-blue-500 transition-all hover:bg-blue-600"
-                    style={{ height: `${height}%` }}
-                  />
-                </div>
-                <span className="text-xs text-slate-500">{dateStr}</span>
-              </div>
-            );
-          })}
+        <div className="h-64 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#64748b' }} />
+              <YAxis domain={[0, 100]} tick={{ fontSize: 12, fill: '#64748b' }} />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '12px',
+                }}
+                formatter={(value: number, name: string) => {
+                  const labels: Record<string, string> = {
+                    score: '総合スコア',
+                    grammar: 'Grammar',
+                    logic: 'Logic',
+                    context: 'Context',
+                    fluency: 'Fluency',
+                  };
+                  return [value, labels[name] || name];
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="score"
+                stroke="#2563eb"
+                strokeWidth={2}
+                dot={{ r: 4, fill: '#2563eb' }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       )}
     </Card>
